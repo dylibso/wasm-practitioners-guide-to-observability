@@ -14,6 +14,13 @@ import (
 	"github.com/dylibso/observe-sdk/go/adapter/opentelemetry"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Output struct {
@@ -24,9 +31,29 @@ type server struct {
 	adapter *opentelemetry.OTelAdapter
 }
 
+const serviceName = "workshop-host"
+
 func main() {
+	ctx := context.Background()
+
+	// create a host Otel exporter (unrelated to the wasm traces)
+	exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithEndpoint("localhost:4317"), otlptracegrpc.WithInsecure())
+	if err != nil {
+		log.Fatalln("failed to create host tracer", err)
+	}
+	exporter.Start(ctx)
+	defer exporter.Shutdown(ctx)
+
+	// create host Otel tracer provider (unrelared to the wasm traces)
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceName(serviceName))),
+	)
+	otel.SetTracerProvider(tp)
+
+	// configuration for the Observe SDK adapter, to manage wasm traces
 	conf := &opentelemetry.OTelConfig{
-		ServiceName:        "workshop-host",
+		ServiceName:        serviceName,
 		EmitTracesInterval: time.Second * 1,
 		TraceBatchMax:      100,
 		Endpoint:           "localhost:4317",
@@ -35,17 +62,24 @@ func main() {
 	}
 	adapter := opentelemetry.NewOTelAdapter(conf)
 
-	ctx := context.Background()
-
 	// start the Observe SDK adapter
 	adapter.Start(ctx)
 	defer adapter.StopWithContext(ctx, true)
 
 	// create a server, containing a handle to the adapter so we can share it with routes
 	s := server{adapter}
-	http.HandleFunc("/", index)
-	http.HandleFunc("/upload", upload)
-	http.HandleFunc("/run", s.runModule)
+	http.Handle(
+		"/",
+		otelhttp.NewHandler(http.HandlerFunc(index), "Index"),
+	)
+	http.Handle(
+		"/upload",
+		otelhttp.NewHandler(http.HandlerFunc(upload), "Upload"),
+	)
+	http.Handle(
+		"/run",
+		otelhttp.NewHandler(http.HandlerFunc(s.runModule), "Run"),
+	)
 
 	log.Println("starting server on :3000")
 	http.ListenAndServe(":3000", nil)
@@ -101,7 +135,7 @@ func upload(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
-	ctx := context.Background()
+	ctx := req.Context()
 	if req.Method != http.MethodPost {
 		res.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -127,9 +161,6 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("Not Found"))
 		return
 	}
-
-	s.adapter.Start(ctx)
-	defer s.adapter.Stop(true)
 
 	cfg := wazero.NewRuntimeConfig().WithCustomSections(true)
 	rt := wazero.NewRuntimeWithConfig(ctx, cfg)
@@ -158,6 +189,14 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 		"http.client_ip":   req.RemoteAddr,
 	}
 	traceCtx.Metadata(meta)
+
+	// get the parent traceId to correlate the wasm trace with the router trace
+	parentTraceId := trace.SpanFromContext(ctx).SpanContext().TraceID().String()
+	log.Println(parentTraceId)
+	if err := traceCtx.SetTraceId(parentTraceId); err != nil {
+		log.Println("failed to set parent trace ID on wasm trace ctx")
+	}
+
 	traceCtx.Finish()
 	log.Println("stopped collector, sent to collector")
 
