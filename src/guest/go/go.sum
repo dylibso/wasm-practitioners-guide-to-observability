@@ -1,0 +1,4 @@
+github.com/dylibso/observe-sdk/observe-api/go v0.0.0-20240228175913-d78bf87dc49d h1:kPSJxEnsxveNIA02sw55/sRsvOv+TMfTpPvKm62QBUQ=
+github.com/dylibso/observe-sdk/observe-api/go v0.0.0-20240228175913-d78bf87dc49d/go.mod h1:+THZYufAniFJWXlS6Hzp1XJbofk8yUIz3Gsv6ZorJDY=
+github.com/dylibso/observe-sdk/observe-api/go v0.0.0-20240228205551-6b4627e4603c h1:E0CH2tCFEHKeQJWSpreQA1YDRicJJDCoB0Y0Qo/gWQk=
+github.com/dylibso/observe-sdk/observe-api/go v0.0.0-20240228205551-6b4627e4603c/go.mod h1:+THZYufAniFJWXlS6Hzp1XJbofk8yUIz3Gsv6ZorJDY=
