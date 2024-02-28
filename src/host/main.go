@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	observe "github.com/dylibso/observe-sdk/go"
 	"github.com/dylibso/observe-sdk/go/adapter/opentelemetry"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
@@ -121,6 +122,7 @@ func upload(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("Internal Service Error"))
 		return
 	}
+	defer tmpFile.Close()
 
 	n, err := io.Copy(tmpFile, mpFile)
 	if err != nil {
@@ -164,7 +166,10 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 
 	cfg := wazero.NewRuntimeConfig().WithCustomSections(true)
 	rt := wazero.NewRuntimeWithConfig(ctx, cfg)
-	traceCtx, err := s.adapter.NewTraceCtx(ctx, rt, wasm, nil)
+	traceOptions := &observe.Options{
+		SpanFilter: &observe.SpanFilter{MinDuration: 0},
+	}
+	traceCtx, err := s.adapter.NewTraceCtx(ctx, rt, wasm, traceOptions)
 	if err != nil {
 		log.Panicln(err)
 	}
