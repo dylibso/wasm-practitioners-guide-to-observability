@@ -1,8 +1,14 @@
 github.com/cenkalti/backoff/v4 v4.2.1 h1:y4OZtCnogmCPw98Zjyt5a6+QwPLGkiQsYW5oUqylYbM=
 github.com/cenkalti/backoff/v4 v4.2.1/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/dylibso/observe-sdk v0.3.1-0.20240228205551-6b4627e4603c h1:EN2CVjlNGBrxNMZbxYLd//bc05tKNg9ZqiBWfz5BUCc=
+github.com/dylibso/observe-sdk v0.3.1-0.20240228205551-6b4627e4603c/go.mod h1:TaFbX+ZlpRKuIdD+xBrAi0xeWq/IGiQM3Yl8OAw9Xm8=
 github.com/dylibso/observe-sdk/go v0.0.0-20240131210918-87a71451f95b h1:LpvXTjHTRNb87/bzVqx+elpKR9KIa/6trHlHa/BIMQo=
 github.com/dylibso/observe-sdk/go v0.0.0-20240131210918-87a71451f95b/go.mod h1:XoTRjv5DNiTcZZMXoYXaxozWHOsgAsfirJRVgT8/QaE=
+github.com/dylibso/observe-sdk/go v0.0.0-20240228175913-d78bf87dc49d h1:NbZjnUgSqXZ9IikKqc1AUZypd3Ll1Zb1nPm8xE1YoMY=
+github.com/dylibso/observe-sdk/go v0.0.0-20240228175913-d78bf87dc49d/go.mod h1:XoTRjv5DNiTcZZMXoYXaxozWHOsgAsfirJRVgT8/QaE=
+github.com/dylibso/observe-sdk/go v0.0.0-20240228205551-6b4627e4603c h1:DSPrb6bWTi9V+GisruVVglkGBuWTrvfMTLsLF6H4x48=
+github.com/dylibso/observe-sdk/go v0.0.0-20240228205551-6b4627e4603c/go.mod h1:XoTRjv5DNiTcZZMXoYXaxozWHOsgAsfirJRVgT8/QaE=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
