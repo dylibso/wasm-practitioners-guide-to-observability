@@ -17,6 +17,7 @@ checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
 [[package]]
 name = "observe_api"
 version = "0.1.0"
+source = "git+https://github.com/dylibso/observe-sdk#6b4627e4603cfc461ca47411e9503a6708265a1c"
 dependencies = [
  "log",
  "observe_instrument",
@@ -25,6 +26,7 @@ dependencies = [
 [[package]]
 name = "observe_instrument"
 version = "0.1.0"
+source = "git+https://github.com/dylibso/observe-sdk#6b4627e4603cfc461ca47411e9503a6708265a1c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -54,7 +56,6 @@ name = "rust"
 version = "0.1.0"
 dependencies = [
  "observe_api",
- "observe_instrument",
  "serde",
  "serde_json",
 ]

@@ -6,8 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# observe_api = { git = "https://github.com/dylibso/observe-sdk" }
-observe_api = { path = "/home/nilslice/Projects/dylibso/observe-sdk/observe-api/rust" }
-observe_instrument = { path = "/home/nilslice/Projects/dylibso/observe-sdk/observe-api/rust/crates/instrument" }
+observe_api = { git = "https://github.com/dylibso/observe-sdk" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
