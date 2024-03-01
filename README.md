@@ -36,6 +36,8 @@ Run this at http://localhost:16686/ in your browser.
 
 ```sh
 cd src/host
+
+docker build --tag workshop-host .
 docker run --network host workshop-host
 # be sure to pass `--network host` here so that the Go application can reach Jaeger
 ```
