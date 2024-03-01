@@ -34,10 +34,32 @@ Run this at http://localhost:16686/ in your browser.
 
 ## 2. Run the Go host service (executes Wasm code) 
 
-**NOTE:** Requires Go to be installed. TODO: Consider Dockerfile to simplify running.
-
 ```sh
 cd src/host
-go run main.go
+docker run --network host workshop-host
+# be sure to pass `--network host` here so that the Go application can reach Jaeger
 ```
 
+This will start a server running at http://localhost:3000
+
+## Upload instrumented wasm code to the Go host service
+
+```sh
+# from the root of the repo
+
+# upload the Rust-based wasm module, name it `rust-manual`
+curl -F wasm=@src/guest/rust/rust.wasm "http://localhost:3000/upload?name=rust-manual"
+
+# upload the Go-based wasm module, name it `go-manual`
+curl -F wasm=@src/guest/go/main.wasm "http://localhost:3000/upload?name=go-manual"
+```
+
+## Run instrumented wasm code on the Go host service
+
+```sh
+# run the Rust-based wasm module
+curl -X POST "http://localhost:3000/run?name=rust-manual"
+
+# run the Go-based wasm module
+curl -X POST "http://localhost:3000/run?name=go-manual"
+```
