@@ -43,6 +43,13 @@ func (d *Data) SetProduct(input string) {
 	}
 	jsonSpan.End()
 
+	if product.Brand != "Apple" {
+		observe.SpanTags([]string{"brand:unknown"})
+	}
+	observe.SpanTags([]string{
+		fmt.Sprintf("price:%d", product.Price),
+		fmt.Sprintf("discountPercentage:%f", product.DiscountPercentage),
+	})
 	d.ProductItem = product
 }
 
