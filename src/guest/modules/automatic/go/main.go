@@ -33,15 +33,12 @@ func (d *Data) SetName(name string) {
 }
 
 func (d *Data) SetProduct(input string) {
-	jsonSpan := observe.NewSpan("UnmarshalProduct")
 	var product Product
 	err := json.Unmarshal([]byte(input), &product)
 	if err != nil {
 		fmt.Println("failed to unmarshal json:", err)
-		jsonSpan.End()
 		return
 	}
-	jsonSpan.End()
 
 	if product.Brand != "Apple" {
 		observe.SpanTags([]string{"brand:unknown"})
