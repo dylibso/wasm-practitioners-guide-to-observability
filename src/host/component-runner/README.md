@@ -1,0 +1,1 @@
+`cargo run ../../guest/components/manual/rust/component-instr-command.wasm`
