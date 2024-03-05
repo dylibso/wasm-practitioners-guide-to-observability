@@ -27,14 +27,14 @@ struct Product {
 }
 
 impl Data {
+    #[no_mangle]
     fn set_name(&mut self, name: &str) {
         self.name = String::from(name);
     }
 
+    #[no_mangle]
     fn set_product(&mut self, input: &str) {
-        span_enter("unmarshal_product");
         let product: Product = serde_json::from_str(input).unwrap_or_default();
-        span_exit();
 
         if product.brand != "Apple" {
             span_tags(vec!["brand:unknown"])
@@ -49,6 +49,7 @@ impl Data {
     }
 }
 
+#[no_mangle]
 fn main() {
     let mut data = Data::default();
     data.set_name("NewProduct");
