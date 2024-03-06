@@ -1,7 +1,7 @@
 {
     "allowed": [
         "instrument_exp__start",
-        "main",
-        "set_product"
+        "main.main",
+        "_*main.Data_.SetProduct"
     ]
 }

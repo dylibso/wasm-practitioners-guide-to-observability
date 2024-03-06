@@ -167,7 +167,7 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 	cfg := wazero.NewRuntimeConfig().WithCustomSections(true)
 	rt := wazero.NewRuntimeWithConfig(ctx, cfg)
 	traceOptions := &observe.Options{
-		SpanFilter: &observe.SpanFilter{MinDuration: 0},
+		SpanFilter: &observe.SpanFilter{MinDuration: 5000},
 	}
 	traceCtx, err := s.adapter.NewTraceCtx(ctx, rt, wasm, traceOptions)
 	if err != nil {
