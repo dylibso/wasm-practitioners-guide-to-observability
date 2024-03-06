@@ -1,0 +1,7 @@
+{
+    "allowed": [
+        "instrument_exp__start",
+        "main.main",
+        "_*main.Data_.SetProduct"
+    ]
+}

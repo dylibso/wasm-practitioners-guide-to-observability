@@ -1,1 +1,2 @@
-src/guest/rust/target
+src/guest/modules/manual/rust/target
+src/guest/modules/automatic/rust/target
