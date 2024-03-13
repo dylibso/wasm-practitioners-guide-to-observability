@@ -1,2 +1,4 @@
 src/guest/modules/manual/rust/target
 src/guest/modules/automatic/rust/target
+src/guest/components/manual/rust/target
+src/host/component-runner/target
