@@ -9,10 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
-	observe "github.com/dylibso/observe-sdk/go"
-	"github.com/dylibso/observe-sdk/go/adapter/opentelemetry"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -21,16 +18,13 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Output struct {
 	Stdout string `json:"stdout"`
 }
 
-type server struct {
-	adapter *opentelemetry.OTelAdapter
-}
+type server struct{}
 
 const serviceName = "workshop-host"
 
@@ -52,23 +46,8 @@ func main() {
 	)
 	otel.SetTracerProvider(tp)
 
-	// configuration for the Observe SDK adapter, to manage wasm traces
-	conf := &opentelemetry.OTelConfig{
-		ServiceName:        serviceName,
-		EmitTracesInterval: time.Second * 1,
-		TraceBatchMax:      100,
-		Endpoint:           "localhost:4317",
-		Protocol:           opentelemetry.GRPC,
-		AllowInsecure:      true, // for localhost in dev via http
-	}
-	adapter := opentelemetry.NewOTelAdapter(conf)
-
-	// start the Observe SDK adapter
-	adapter.Start(ctx)
-	defer adapter.StopWithContext(ctx, true)
-
-	// create a server, containing a handle to the adapter so we can share it with routes
-	s := server{adapter}
+	// create a server
+	s := server{}
 	http.Handle(
 		"/",
 		otelhttp.NewHandler(http.HandlerFunc(index), "Index"),
@@ -151,10 +130,6 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// NOTE: The wasm code loaded here will only report any metrics via the adapter _if the code is instrumented_.
-	// If you expect to see telemetry data, please be sure you're running instrumented code.
-	// This section of the docs is a good place to start:
-	// https://dev.dylibso.com/docs/observe/overview#2-instrumenting-your-code-automatic-or-manual
 	path := filepath.Join(os.TempDir(), name)
 	wasm, err := os.ReadFile(path)
 	if err != nil {
@@ -166,13 +141,6 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 
 	cfg := wazero.NewRuntimeConfig().WithCustomSections(true)
 	rt := wazero.NewRuntimeWithConfig(ctx, cfg)
-	traceOptions := &observe.Options{
-		SpanFilter: &observe.SpanFilter{MinDuration: 5000},
-	}
-	traceCtx, err := s.adapter.NewTraceCtx(ctx, rt, wasm, traceOptions)
-	if err != nil {
-		log.Panicln(err)
-	}
 	wasi_snapshot_preview1.MustInstantiate(ctx, rt)
 	output := &bytes.Buffer{}
 	config := wazero.NewModuleConfig().WithStdin(req.Body).WithStdout(output).WithArgs(name)
@@ -186,24 +154,6 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	defer mod.Close(ctx)
-
-	// associate some additional metadata with the trace
-	meta := map[string]string{
-		"http.url":         req.URL.String(),
-		"http.status_code": fmt.Sprintf("%d", http.StatusOK),
-		"http.client_ip":   req.RemoteAddr,
-	}
-	traceCtx.Metadata(meta)
-
-	// get the parent traceId to correlate the wasm trace with the router trace
-	parentTraceId := trace.SpanFromContext(ctx).SpanContext().TraceID().String()
-	log.Println(parentTraceId)
-	if err := traceCtx.SetTraceId(parentTraceId); err != nil {
-		log.Println("failed to set parent trace ID on wasm trace ctx")
-	}
-
-	traceCtx.Finish()
-	log.Println("stopped collector, sent to collector")
 
 	res.WriteHeader(http.StatusOK)
 	res.Header().Add("content-type", "application/json")

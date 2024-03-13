@@ -1,14 +1,5 @@
 # Wasm Practitioners Guide to Observability
 
-In this workshop, we’ll be covering the full spectrum of observability in Wasm - and what the options are to instrument your code, as well as how to ensure Wasm telemetry makes it out of the runtime and seamlessly blends into your existing observability stack.
-
-We’ll discuss how WebAssembly is well suited for all kinds of automatic instrumentation that can be done after code is compiled, and how to precisely instrument code where needed.
-
-The technology and libraries used is planned to undergo specification as “wasi-observe” (final name TBD) by the WASI subgroup, and is currently available as open source libraries from Dylibso, as the Observe SDK: https://github.com/dylibso/observe-sdk
-
-Attendees will write some code to compile to Wasm, link import functions to handle telemetry integrated into their host applications, and then see live telemetry data visualized in their APM.
-
-
 # Setup
 
 ## 1. Intstall Jaeger (viewing OpenTelemetry data)
@@ -35,7 +26,7 @@ Run this at http://localhost:16686/ in your browser.
 ## 2. Run the Go host service (executes Wasm code) 
 
 ```sh
-cd src/host
+cd src/host/module-runner
 
 docker build --tag workshop-host .
 docker run --network host workshop-host
@@ -44,24 +35,9 @@ docker run --network host workshop-host
 
 This will start a server running at http://localhost:3000
 
-## 3. Upload instrumented wasm code to the Go host service
+Send the server some traffic and test that the Go host code is traced with OpenTelemetry:
 
 ```sh
-# from the root of the repo
-
-# upload the Rust-based wasm module, name it `rust-manual`
-curl -F wasm=@src/guest/rust/rust.wasm "http://localhost:3000/upload?name=rust-manual"
-
-# upload the Go-based wasm module, name it `go-manual`
-curl -F wasm=@src/guest/go/main.wasm "http://localhost:3000/upload?name=go-manual"
-```
-
-## 4. Run instrumented wasm code on the Go host service
-
-```sh
-# run the Rust-based wasm module
-curl -X POST "http://localhost:3000/run?name=rust-manual"
-
-# run the Go-based wasm module
-curl -X POST "http://localhost:3000/run?name=go-manual"
+curl -X POST http://localhost:3000/run
+# expect this to return some kind of Bad Response error, but verify in Jaeger
 ```
