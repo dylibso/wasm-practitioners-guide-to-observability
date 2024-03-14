@@ -2,7 +2,7 @@
 
 # Setup
 
-## 1. Intstall Jaeger (viewing OpenTelemetry data)
+## 1. Install Jaeger (viewing OpenTelemetry data)
 
 ```sh
 docker run -d --rm --name jaeger \
