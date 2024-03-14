@@ -26,7 +26,7 @@ Run this at http://localhost:16686/ in your browser.
 ## 2. Run the Go host service (executes Wasm code) 
 
 ```sh
-cd src/host
+cd src/host/module-runner
 
 docker build --tag workshop-host .
 docker run --network host workshop-host
@@ -57,16 +57,39 @@ curl -X POST "http://localhost:3000/run?name=rust-manual"
 curl -X POST "http://localhost:3000/run?name=go-manual"
 ```
 
-## 5. Auto-instrument wasm code using Dylibso's instrumenting compiler
+## 5. Auto-instrument Wasm code using Dylibso's instrumenting compiler
 
-Get an API key from https://compiler-preview.dylibso.com/
+### 5.1 Get an API key from https://compiler-preview.dylibso.com/
+
+### 5.2 Instrument your module
+
+Instrument your module by sending it in a HTTP multipart/form-data POST request to the compiler:
 
 ```sh
-# Update the paths to the wasm module to instrument to use pre-built ones, or bring your own!
+# Update the paths to the wasm module to instrument to use pre-built ones, or bring your own! Be sure to also set or fill-in $API_KEY
 curl --fail -F wasm=@code.wasm -H "Authorization: Bearer $API_KEY" \
   https://compiler-preview.dylibso.com/instrument > code.instr.wasm
 ```
 
+Alternatively you can try out the pre-instrumented modules instead for the next step:
+
+#### Go debug build instrumented
+
+`src/guest/modules/automatic/go/main.debug.instr.wasm`
+
+#### Rust debug build instrumented
+
+`src/guest/modules/automatic/rust/rust.debug.instr.wasm`
+
+### 5.3 Upload and run the auto-instrumented module
+
+`curl -F wasm=@src/guest/modules/automatic/go/main.debug.instr.wasm "http://localhost:3000/upload?name=go-automatic"`
+
+`curl -X POST "http://localhost:3000/run?name=go-automatic"`
+
+As almost every function is instrumented, there should be much more output in Jaegar then we had from manual instrumentation.
+
+### 5.4 Instrument your module with configuration
 The compiler can optionally take configuration to allow or disallow certain functions explicitly, 
 which helps to get a fine-grained trace or ignore certain functions altogether. 
 
@@ -88,3 +111,15 @@ curl --fail -F wasm=@code.wasm -F config='{"allowed": ["foo", "bar"]}' \
   -H "Authorization: Bearer $API_KEY" \
   https://compiler-preview.dylibso.com/instrument > code.instr.wasm
 ```
+
+Alternatively you can try out the pre-instrumented modules with config:
+
+#### Go
+
+`src/guest/modules/automatic/go/main.debug.config.instr.wasm`
+
+#### Rust
+
+`src/guest/modules/automatic/rust/rust.debug.config.instr.wasm`
+
+If you upload and run your module, you'll see that the instrumentation output has been greatly reduced.
