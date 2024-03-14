@@ -26,7 +26,7 @@ Run this at http://localhost:16686/ in your browser.
 ## 2. Run the Go host service (executes Wasm code) 
 
 ```sh
-cd src/host
+cd src/host/module-runner
 
 docker build --tag workshop-host .
 docker run --network host workshop-host
