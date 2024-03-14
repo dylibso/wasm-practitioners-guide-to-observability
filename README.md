@@ -123,3 +123,41 @@ Alternatively you can try out the pre-instrumented modules with config:
 `src/guest/modules/automatic/rust/rust.debug.config.instr.wasm`
 
 If you upload and run your module, you'll see that the instrumentation output has been greatly reduced.
+
+## 6 Components
+
+The Observe SDK can also run components.
+
+### 6.1 Install cargo-component 0.70
+
+`cargo install cargo-component@0.7.0`
+
+### 6.2 Build a component using the Observe API
+
+`cd src/guest/components/manual/rust/`
+
+`cargo component build`
+
+It should build to `target/wasm32-wasi/debug/component-instr-command.wasm`
+
+Alternatively, the prebuilt component is available:
+
+`component-instr-command.wasm`
+
+### 6.3 Running the component
+
+Only the Rust version of the Observe SDK currently has component support so we cannot use same host.
+
+Navigate to `src/host/component-runner`
+
+Run a prebuilt component:
+
+`cargo run ../../guest/components/manual/rust/component-instr-command.wasm`
+
+Or run the component you built:
+
+`cargo run ../../guest/components/manual/rust/target/wasm32-wasi/debug/component-instr-command.wasm`
+
+The output from this host is outputted to stdout. The message printed is a little cryptic, but there is a span named `hello world`. The message is an Open Telemetry Protobuf message in Rust debug format. In the future we plan on improving the OTEL adapter to be able to send to a collector as the go host does.
+
+Automatic instrumentation of components is in the works.
