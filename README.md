@@ -2,6 +2,10 @@
 
 # Setup
 
+Install these tools, and follow the slides if you'd like!
+https://docs.google.com/presentation/d/1-BxJFaSeOWVLu18Nr26zDX-vvc8yEK9QYTAHi5gne5k/edit?usp=sharing
+
+
 ## 1. Install Jaeger (viewing OpenTelemetry data)
 
 ```sh
