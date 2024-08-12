@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -92,6 +93,22 @@ func index(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte("Hello, World!\n"))
 }
 
+// verify that the base and the path have the same basename
+// for security reasons
+func verifyPath(base string, path string) error {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return errors.New("Error getting absolute path: " + err.Error())
+	}
+
+	relPath, err := filepath.Rel(base, absPath)
+	if err != nil || relPath == "" || relPath == "." || relPath[0] == '.' {
+		return errors.New("Invalid file path: outside of temp directory")
+	}
+
+	return nil
+}
+
 func upload(res http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		res.WriteHeader(http.StatusMethodNotAllowed)
@@ -114,7 +131,18 @@ func upload(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	path := filepath.Join(os.TempDir(), name)
+	base := os.TempDir()
+	path := filepath.Join(base, name)
+
+	// let's make sure the path was not manipulated
+	err = verifyPath(base, path)
+	if err != nil {
+		log.Println("invalid file name:", err)
+		res.WriteHeader(http.StatusBadRequest)
+		res.Write([]byte("Bad Request"))
+		return
+	}
+
 	tmpFile, err := os.Create(path)
 	if err != nil {
 		log.Println("file error:", err)
@@ -155,8 +183,20 @@ func (s *server) runModule(res http.ResponseWriter, req *http.Request) {
 	// If you expect to see telemetry data, please be sure you're running instrumented code.
 	// This section of the docs is a good place to start:
 	// https://dev.dylibso.com/docs/observe/overview#2-instrumenting-your-code-automatic-or-manual
-	path := filepath.Join(os.TempDir(), name)
+	base := os.TempDir()
+	path := filepath.Join(base, name)
+
+	// let's make sure the path was not manipulated
+	err := verifyPath(base, path)
+	if err != nil {
+		log.Println("invalid file name:", err)
+		res.WriteHeader(http.StatusBadRequest)
+		res.Write([]byte("Bad Request"))
+		return
+	}
+
 	wasm, err := os.ReadFile(path)
+
 	if err != nil {
 		log.Println("name error: no module found", err)
 		res.WriteHeader(http.StatusNotFound)
